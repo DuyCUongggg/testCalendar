@@ -312,21 +312,21 @@
         }
 
         .time-cell.heat-0 { background: #ffffff; color: #999; }
-        .time-cell.heat-1 { background: #fee2e2; color: #991b1b; }  /* Đỏ nhạt - 1 người */
-        .time-cell.heat-2 { background: #fed7aa; color: #9a3412; }  /* Cam nhạt - 2 người */
-        .time-cell.heat-3 { background: #fde68a; color: #92400e; }  /* Vàng nhạt - 3 người */
-        .time-cell.heat-4 { background: #fef08a; color: #854d0e; }  /* Vàng - 4 người */
-        .time-cell.heat-5 { background: #d9f99d; color: #3f6212; }  /* Xanh lá nhạt - 5 người */
-        .time-cell.heat-6 { background: #bef264; color: #365314; }  /* Xanh lá vừa - 6 người */
-        .time-cell.heat-7 { background: #a3e635; color: #1a2e05; }  /* Xanh lá - 7 người */
-        .time-cell.heat-8 { background: #86efac; color: #14532d; }  /* Xanh lục - 8 người */
-        .time-cell.heat-9 { background: #6ee7b7; color: #065f46; }  /* Xanh lục đậm - 9 người */
-        .time-cell.heat-10 { background: #34d399; color: white; }   /* Xanh lục đậm hơn - 10 người */
-        .time-cell.heat-11 { background: #10b981; color: white; }   /* Xanh đậm - 11 người */
-        .time-cell.heat-12 { background: #059669; color: white; }   /* Xanh đậm hơn - 12 người */
-        .time-cell.heat-13 { background: #047857; color: white; }   /* Xanh đậm hơn nữa - 13 người */
-        .time-cell.heat-14 { background: #065f46; color: white; }   /* Xanh đậm nhất - 14 người */
-        .time-cell.heat-15 { background: #064e3b; color: white; }   /* Xanh đen - 15 người */
+        .time-cell.heat-1 { background: #fee2e2; color: #991b1b; }
+        .time-cell.heat-2 { background: #fed7aa; color: #9a3412; }
+        .time-cell.heat-3 { background: #fde68a; color: #92400e; }
+        .time-cell.heat-4 { background: #fef08a; color: #854d0e; }
+        .time-cell.heat-5 { background: #d9f99d; color: #3f6212; }
+        .time-cell.heat-6 { background: #bef264; color: #365314; }
+        .time-cell.heat-7 { background: #a3e635; color: #1a2e05; }
+        .time-cell.heat-8 { background: #86efac; color: #14532d; }
+        .time-cell.heat-9 { background: #6ee7b7; color: #065f46; }
+        .time-cell.heat-10 { background: #34d399; color: white; }
+        .time-cell.heat-11 { background: #10b981; color: white; }
+        .time-cell.heat-12 { background: #059669; color: white; }
+        .time-cell.heat-13 { background: #047857; color: white; }
+        .time-cell.heat-14 { background: #065f46; color: white; }
+        .time-cell.heat-15 { background: #064e3b; color: white; }
 
         .tooltip {
             position: fixed;
@@ -387,55 +387,114 @@
             color: #999;
         }
 
-        /* NEW: Results styling - grouped by date */
-        .results-by-date {
-            margin-top: 16px;
-        }
-
+        /* Timeline Results */
         .date-group {
-            margin-bottom: 32px;
+            margin-bottom: 40px;
         }
 
-        .date-group-header {
+        .date-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .date-header {
             font-size: 1.1em;
             font-weight: 600;
-            color: #065f46;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #10b981;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
         }
 
-        .time-ranges {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
+        .date-header .date {
+            color: #10b981;
         }
 
-        .time-range-card {
-            background: #10b981;
-            color: white;
-            padding: 20px 16px;
-            text-align: center;
-            font-weight: 600;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .time-range-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .time-range-card .day {
+        .date-header .day {
+            color: #999;
             font-size: 0.85em;
-            margin-bottom: 4px;
-            opacity: 0.9;
+            font-weight: 400;
         }
 
-        .time-range-card .time {
-            font-size: 1.3em;
-            font-weight: 700;
+        .timeline-container {
+            position: relative;
+            padding: 30px 0 20px 0;
+        }
+
+        .timeline-hours {
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 16px;
+            pointer-events: none;
+        }
+
+        .hour-label {
+            position: absolute;
+            font-size: 0.75em;
+            color: #999;
+            font-weight: 500;
+            transform: translateX(-50%);
+        }
+
+        .timeline-line {
+            position: relative;
+            height: 2px;
+            background: #e5e5e5;
+            margin-top: 30px;
+        }
+
+        .timeline-highlights {
+            position: absolute;
+            top: -5px;
+            left: 0;
+            right: 0;
+            height: 12px;
+        }
+
+        .highlight {
+            position: absolute;
+            height: 100%;
+            background: #10b981;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .highlight:hover {
+            background: #059669;
+            transform: scaleY(1.3);
+        }
+
+        .duration-label {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .highlight-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #10b981;
+            white-space: nowrap;
+        }
+
+        .highlight-label.start {
+            left: 0;
+            transform: translateX(-50%);
+        }
+
+        .highlight-label.end {
+            right: 0;
+            transform: translateX(50%);
         }
 
         button.secondary {
@@ -481,7 +540,6 @@
                 font-size: 0.75em;
             }
             
-            /* Chấm nhỏ hơn trên mobile */
             .time-cell.current-user-marked::before {
                 width: 8px;
                 height: 8px;
@@ -489,16 +547,20 @@
                 left: 4px;
             }
 
-            .time-ranges {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            .hour-label {
+                font-size: 0.7em;
             }
 
-            .time-range-card {
-                padding: 16px 12px;
+            .highlight-label {
+                font-size: 0.7em;
             }
 
-            .time-range-card .time {
-                font-size: 1.1em;
+            .duration-label {
+                font-size: 0.65em;
+            }
+
+            .date-group {
+                margin-bottom: 32px;
             }
         }
     </style>
@@ -593,7 +655,7 @@
 
         <!-- Footer -->
         <div style="text-align: center; padding: 20px; color: #999; font-size: 0.85em;">
-            Version v1.0.5 - Upgraded Results
+            Version v1.1.0 - Timeline Results
         </div>
     </div>
 
@@ -658,7 +720,7 @@
 
         let currentUser = null;
         let dates = [];
-        let viewIndex = 0;  // Trang hiện tại (0 = 15 ngày đầu, 1 = 15 ngày tiếp, ...)
+        let viewIndex = 0;
         const DAYS_PER_PAGE = 15;
         
         const TIME_SLOTS = [];
@@ -667,7 +729,7 @@
         }
 
         // =====================================================
-        // SAVE/LOAD - SIMPLIFIED
+        // SAVE/LOAD
         // =====================================================
         const LOCALSTORAGE_KEY = 'schedule_data_' + eventId;
         
@@ -715,11 +777,9 @@
                     return;
                 }
                 
-                // Merge strategy: Combine participants and availability
                 const localParticipants = data.participants || [];
                 const firebaseParticipants = firebaseData.participants || [];
                 
-                // If local has more participants, keep local
                 if (localParticipants.length >= firebaseParticipants.length) {
                     console.log('[FIREBASE] Local data is newer, ignoring Firebase update');
                     return;
@@ -728,7 +788,6 @@
                 console.log('[FIREBASE] Received update, merging...');
                 data = firebaseData;
                 
-                // Update UI
                 if (data.dateRange && data.dateRange.startDate && data.dateRange.endDate) {
                     document.getElementById('startDate').value = data.dateRange.startDate;
                     document.getElementById('endDate').value = data.dateRange.endDate;
@@ -758,7 +817,6 @@
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0];
             
-            // Calculate end date (14 days later = 15 days total)
             const endDay = new Date(today);
             endDay.setDate(today.getDate() + 14);
             const endDayStr = endDay.toISOString().split('T')[0];
@@ -768,7 +826,6 @@
                 document.getElementById('endDate').value = endDayStr;
                 data.dateRange = { startDate: todayStr, endDate: endDayStr };
                 
-                // Generate dates array
                 dates = [];
                 for (let i = 0; i < 15; i++) {
                     const date = new Date(today);
@@ -776,7 +833,6 @@
                     dates.push(date);
                 }
                 
-                // Save initial date range
                 saveToLocalStorage();
                 saveToFirebase();
             } else {
@@ -808,7 +864,6 @@
             const start = new Date(startDate);
             const end = new Date(endDate);
             
-            // Validate
             if (end < start) {
                 alert('Ngày kết thúc phải sau ngày bắt đầu');
                 return;
@@ -823,7 +878,6 @@
 
             data.dateRange = { startDate, endDate };
             
-            // Generate ALL dates
             dates = [];
             for (let i = 0; i < numDays; i++) {
                 const date = new Date(start);
@@ -831,7 +885,6 @@
                 dates.push(date);
             }
 
-            // Reset view to first page
             viewIndex = 0;
 
             updateDateRangeDisplay();
@@ -858,7 +911,6 @@
             
             viewIndex += direction;
             
-            // Clamp to valid range
             if (viewIndex < 0) {
                 viewIndex = 0;
             }
@@ -960,7 +1012,6 @@
             document.getElementById('selectUserSection').style.display = 'block';
             document.getElementById('matrixSection').style.display = 'block';
             
-            // Update current user info display
             const infoDiv = document.getElementById('currentUserInfo');
             if (currentUser && data.participants.includes(currentUser)) {
                 infoDiv.style.display = 'block';
@@ -996,7 +1047,6 @@
             renderUserSelection();
             renderMatrix();
             
-            // Show current user info
             const infoDiv = document.getElementById('currentUserInfo');
             infoDiv.style.display = 'block';
             infoDiv.innerHTML = `<strong>Đang điền lịch cho:</strong> ${name}. Click vào các ô để đánh dấu rảnh.`;
@@ -1018,7 +1068,6 @@
                 html += `<div class="matrix-header">${hour}h</div>`;
             });
 
-            // Pagination: Chỉ hiện 15 ngày theo viewIndex
             const startIdx = viewIndex * DAYS_PER_PAGE;
             const endIdx = Math.min(startIdx + DAYS_PER_PAGE, dates.length);
             const visibleDates = dates.slice(startIdx, endIdx);
@@ -1044,18 +1093,15 @@
                     const count = available.length;
                     const total = data.participants.length;
                     
-                    // Dùng count thực tế để quyết định màu (1-15 người)
                     let heatClass = 'heat-0';
                     if (count === 0) {
                         heatClass = 'heat-0';
                     } else if (count >= 15) {
                         heatClass = 'heat-15';
                     } else {
-                        // count từ 1-14 → heat-1 đến heat-14
                         heatClass = `heat-${count}`;
                     }
                     
-                    // Check if current user has marked this slot
                     const isCurrentUserMarked = currentUser && available.includes(currentUser);
                     const markedClass = isCurrentUserMarked ? 'current-user-marked' : '';
 
@@ -1073,7 +1119,6 @@
 
             container.innerHTML = html;
             
-            // Update page indicator
             const totalPages = Math.ceil(dates.length / DAYS_PER_PAGE);
             const currentPage = viewIndex + 1;
             const pageIndicator = document.getElementById('pageIndicator');
@@ -1087,7 +1132,6 @@
                 }
             }
             
-            // Update navigation button states
             updateNavigationButtons();
         }
 
@@ -1164,7 +1208,7 @@
         }
 
         // =====================================================
-        // RESULTS - NEW VERSION WITH GROUPING
+        // RESULTS - TIMELINE VERSION
         // =====================================================
         function updateResults() {
             const resultsDiv = document.getElementById('results');
@@ -1174,7 +1218,6 @@
                 return;
             }
 
-            // Find all slots where everyone is available
             const allAvailableSlots = [];
             Object.keys(data.availability).forEach(slot => {
                 if (data.availability[slot].length === data.participants.length) {
@@ -1191,7 +1234,6 @@
                 return;
             }
 
-            // Sort by date and hour
             allAvailableSlots.sort((a, b) => {
                 const [dateA, hourA] = a.split('|');
                 const [dateB, hourB] = b.split('|');
@@ -1199,10 +1241,7 @@
                 return parseInt(hourA) - parseInt(hourB);
             });
 
-            // Group consecutive hours into ranges
             const timeRanges = groupConsecutiveHours(allAvailableSlots);
-
-            // Group by date
             const byDate = {};
             timeRanges.forEach(range => {
                 if (!byDate[range.date]) {
@@ -1211,17 +1250,13 @@
                 byDate[range.date].push(range);
             });
 
-            // Render grouped results
             let html = `
                 <div class="info-box">
-                    Có <strong>${allAvailableSlots.length} khung giờ</strong> 
-                    mà tất cả ${data.participants.length} người đều rảnh.
-                    Đã gộp thành <strong>${timeRanges.length} khoảng thời gian</strong> liên tục.
+                    Có <strong>${allAvailableSlots.length} khung giờ</strong> rảnh, 
+                    gộp thành <strong>${timeRanges.length} khoảng thời gian</strong> liên tục
                 </div>
-                <div class="results-by-date">
             `;
 
-            // Sort dates
             const sortedDates = Object.keys(byDate).sort();
 
             sortedDates.forEach(dateStr => {
@@ -1233,39 +1268,46 @@
 
                 html += `
                     <div class="date-group">
-                        <div class="date-group-header">
-                            ${dateDisplay} ${dayName}
+                        <div class="date-header">
+                            <span class="date">${dateDisplay}</span>
+                            <span class="day">${dayName}</span>
                         </div>
-                        <div class="time-ranges">
+                        <div class="timeline-container">
+                            <div class="timeline-hours">
+                                <div class="hour-label" style="left: 0%;">7h</div>
+                                <div class="hour-label" style="left: 46.67%;">14h</div>
+                                <div class="hour-label" style="left: 100%;">22h</div>
+                            </div>
+                            <div class="timeline-line">
+                                <div class="timeline-highlights">
                 `;
 
                 ranges.forEach(range => {
+                    const startPos = ((range.startHour - 7) / 15) * 100;
+                    const width = ((range.endHour - range.startHour + 1) / 15) * 100;
+                    const duration = range.endHour - range.startHour + 1;
+                    const durationText = duration === 1 ? '1 tiếng' : `${duration} tiếng`;
+
                     html += `
-                        <div class="time-range-card">
-                            <div class="day">${dayName} ${dateDisplay}</div>
-                            <div class="time">${range.startHour}h - ${range.endHour}h</div>
+                        <div class="highlight" style="left: ${startPos}%; width: ${width}%;">
+                            <div class="duration-label">${durationText}</div>
+                            <div class="highlight-label start">${range.startHour}h</div>
+                            <div class="highlight-label end">${range.endHour}h</div>
                         </div>
                     `;
                 });
 
                 html += `
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
             });
 
-            html += '</div>';
             resultsDiv.innerHTML = html;
         }
 
-        /**
-         * Group consecutive hour slots into time ranges
-         * Input: ["2025-03-22|7", "2025-03-22|8", "2025-03-22|9", "2025-03-22|11"]
-         * Output: [
-         *   { date: "2025-03-22", startHour: 7, endHour: 9 },
-         *   { date: "2025-03-22", startHour: 11, endHour: 11 }
-         * ]
-         */
         function groupConsecutiveHours(slots) {
             if (slots.length === 0) return [];
 
@@ -1277,17 +1319,14 @@
                 const hour = parseInt(hourStr);
 
                 if (!currentRange) {
-                    // Start new range
                     currentRange = {
                         date: date,
                         startHour: hour,
                         endHour: hour
                     };
                 } else if (currentRange.date === date && hour === currentRange.endHour + 1) {
-                    // Extend current range
                     currentRange.endHour = hour;
                 } else {
-                    // Save current range and start new one
                     ranges.push(currentRange);
                     currentRange = {
                         date: date,
@@ -1297,7 +1336,6 @@
                 }
             });
 
-            // Don't forget the last range
             if (currentRange) {
                 ranges.push(currentRange);
             }
@@ -1320,16 +1358,13 @@
         // =====================================================
         console.log('[INIT] Starting...');
         
-        // Load from localStorage first
         const hasLocalData = loadFromLocalStorage();
         
-        // Init date range if not already loaded
         if (!data.dateRange.startDate || !data.dateRange.endDate) {
             console.log('[INIT] No date range, initializing...');
             initDateRange();
         } else {
             console.log('[INIT] Date range loaded');
-            // Restore date inputs and generate dates array
             document.getElementById('startDate').value = data.dateRange.startDate;
             document.getElementById('endDate').value = data.dateRange.endDate;
             
@@ -1347,11 +1382,9 @@
             updateDateRangeDisplay();
         }
         
-        // Render UI
         console.log('[INIT] Rendering UI...');
         renderAll();
         
-        // Setup Firebase sync (if configured)
         setupFirebaseSync();
         
         console.log('[INIT] Complete!');
