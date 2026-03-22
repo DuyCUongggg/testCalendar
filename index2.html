@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm Lịch Rảnh</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #10b981;
+        }
+
+        .section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #10b981;
+        }
+
+        /* Date range controls */
+        .date-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .date-controls label {
+            font-weight: 500;
+        }
+
+        .date-controls input[type="date"],
+        .date-controls input[type="number"] {
+            padding: 10px;
+            border: 1px solid #d0d0d0;
+            font-size: 1em;
+        }
+
+        .date-controls input:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+        
+        .date-controls > div:not(.date-range-display) {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .date-nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #d0d0d0;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 1.2em;
+        }
+
+        .nav-btn:hover {
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .date-range-display {
+            padding: 10px 16px;
+            background: #f0fdf4;
+            border: 1px solid #10b981;
+            font-weight: 500;
+            color: #065f46;
+            flex: 0 0 auto;
+        }
+
+        /* Participants */
+        .add-participant {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .add-participant input {
+            flex: 1;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #d0d0d0;
+            font-size: 1em;
+        }
+
+        .add-participant input:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        .add-btn {
+            padding: 10px 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        .add-btn:hover {
+            background: #059669;
+        }
+
+        .participants-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .participant-tag {
+            background: #f0fdf4;
+            border: 1px solid #10b981;
+            padding: 6px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .participant-tag.current {
+            background: #10b981;
+            color: white;
+        }
+
+        .participant-tag .name {
+            font-weight: 500;
+        }
+
+        .participant-tag .remove {
+            cursor: pointer;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .participant-tag.current .remove {
+            color: white;
+        }
+
+        .participant-tag .remove:hover {
+            color: #dc2626;
+        }
+
+        .current-user-info {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.95em;
+        }
+
+        /* Matrix */
+        .matrix-container {
+            overflow: auto;
+            margin-top: 20px;
+            max-height: 600px;
+            position: relative;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .matrix-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .matrix-container::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        .matrix-container::-webkit-scrollbar-thumb {
+            background: #d0d0d0;
+            border-radius: 6px;
+        }
+
+        .matrix-container::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+
+        .time-matrix {
+            display: grid;
+            grid-template-columns: 140px repeat(16, 60px);
+            gap: 1px;
+            background: #e0e0e0;
+            border: 1px solid #e0e0e0;
+            min-width: fit-content;
+        }
+
+        .matrix-header {
+            background: #f5f5f5;
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 0.9em;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 2px solid #10b981;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .matrix-header:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 30;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .row-header {
+            background: #f5f5f5;
+            font-weight: 600;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border-right: 2px solid #10b981;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        }
+
+        .row-header .date-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .row-header .date {
+            font-size: 0.95em;
+        }
+
+        .row-header .day {
+            font-size: 0.75em;
+            color: #666;
+        }
+
+        .time-cell {
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .time-cell:hover {
+            box-shadow: inset 0 0 0 2px #10b981;
+            z-index: 5;
+        }
+
+        /* Chấm tròn đen đánh dấu ô của user hiện tại */
+        .time-cell.current-user-marked::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 10px;
+            height: 10px;
+            background: #1a1a1a;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .time-cell.heat-0 { background: #ffffff; color: #999; }
+        .time-cell.heat-1 { background: #fee2e2; color: #991b1b; }  /* Đỏ nhạt - 1 người */
+        .time-cell.heat-2 { background: #fed7aa; color: #9a3412; }  /* Cam nhạt - 2 người */
+        .time-cell.heat-3 { background: #fde68a; color: #92400e; }  /* Vàng nhạt - 3 người */
+        .time-cell.heat-4 { background: #fef08a; color: #854d0e; }  /* Vàng - 4 người */
+        .time-cell.heat-5 { background: #d9f99d; color: #3f6212; }  /* Xanh lá nhạt - 5 người */
+        .time-cell.heat-6 { background: #bef264; color: #365314; }  /* Xanh lá vừa - 6 người */
+        .time-cell.heat-7 { background: #a3e635; color: #1a2e05; }  /* Xanh lá - 7 người */
+        .time-cell.heat-8 { background: #86efac; color: #14532d; }  /* Xanh lục - 8 người */
+        .time-cell.heat-9 { background: #6ee7b7; color: #065f46; }  /* Xanh lục đậm - 9 người */
+        .time-cell.heat-10 { background: #34d399; color: white; }   /* Xanh lục đậm hơn - 10 người */
+        .time-cell.heat-11 { background: #10b981; color: white; }   /* Xanh đậm - 11 người */
+        .time-cell.heat-12 { background: #059669; color: white; }   /* Xanh đậm hơn - 12 người */
+        .time-cell.heat-13 { background: #047857; color: white; }   /* Xanh đậm hơn nữa - 13 người */
+        .time-cell.heat-14 { background: #065f46; color: white; }   /* Xanh đậm nhất - 14 người */
+        .time-cell.heat-15 { background: #064e3b; color: white; }   /* Xanh đen - 15 người */
+
+        .tooltip {
+            position: fixed;
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .tooltip.show {
+            display: block;
+        }
+
+        .tooltip .header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #444;
+        }
+
+        .tooltip .people-list {
+            font-size: 0.9em;
+        }
+
+        .tooltip .person {
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tooltip .person.available {
+            color: #6ee7b7;
+        }
+
+        .tooltip .person.unavailable {
+            color: #999;
+        }
+
+        .info-box {
+            background: #f0fdf4;
+            border-left: 3px solid #10b981;
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-size: 0.9em;
+            color: #065f46;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* NEW: Results styling - grouped by date */
+        .results-by-date {
+            margin-top: 16px;
+        }
+
+        .date-group {
+            margin-bottom: 32px;
+        }
+
+        .date-group-header {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #10b981;
+        }
+
+        .time-ranges {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .time-range-card {
+            background: #10b981;
+            color: white;
+            padding: 20px 16px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .time-range-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .time-range-card .day {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+
+        .time-range-card .time {
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        button.secondary {
+            background: white;
+            color: #666;
+            border: 1px solid #d0d0d0;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        button.secondary:hover {
+            background: #f5f5f5;
+            border-color: #10b981;
+        }
+
+        @media (max-width: 900px) {
+            .time-matrix {
+                grid-template-columns: 100px repeat(16, 50px);
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .date-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .matrix-header {
+                font-size: 0.8em;
+                padding: 10px 6px;
+            }
+            
+            .row-header {
+                padding: 10px 8px;
+            }
+            
+            .time-cell {
+                min-height: 45px;
+                font-size: 0.75em;
+            }
+            
+            /* Chấm nhỏ hơn trên mobile */
+            .time-cell.current-user-marked::before {
+                width: 8px;
+                height: 8px;
+                top: 4px;
+                left: 4px;
+            }
+
+            .time-ranges {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .time-range-card {
+                padding: 16px 12px;
+            }
+
+            .time-range-card .time {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tìm Lịch Rảnh</h1>
+
+        <!-- Firebase Setup Notice -->
+        <div class="section" id="firebaseNotice">
+            <div class="section-title">⚠️ Cần setup Firebase</div>
+            <p style="color: #dc2626; margin-bottom: 12px;">
+                <strong>Bạn chưa cấu hình Firebase!</strong> Vui lòng:
+            </p>
+            <ol style="margin-left: 20px; line-height: 2;">
+                <li>Tạo Firebase project tại <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+                <li>Tạo Realtime Database (test mode)</li>
+                <li>Lấy Firebase Config từ Project Settings</li>
+                <li>Paste config vào dòng 433 của file HTML này</li>
+            </ol>
+        </div>
+
+        <!-- Date Range -->
+        <div class="section">
+            <div class="section-title">1. Chọn khoảng thời gian</div>
+            
+            <div style="color: #666; font-size: 0.9em; margin-bottom: 12px;">
+                📅 Chọn tối đa 100 ngày. Ma trận hiển thị 15 ngày/trang, dùng nút mũi tên để chuyển trang.
+            </div>
+            
+            <div class="date-controls">
+                <div>
+                    <label>Ngày bắt đầu:</label>
+                    <input type="date" id="startDate" onchange="updateDateRange()" />
+                </div>
+                <div>
+                    <label>Ngày kết thúc:</label>
+                    <input type="date" id="endDate" onchange="updateDateRange()" />
+                </div>
+                <div class="date-range-display" id="dateRangeDisplay"></div>
+            </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="section">
+            <div class="section-title">2. Quản lý người tham gia</div>
+            
+            <div class="add-participant">
+                <input type="text" id="newParticipant" placeholder="Nhập tên người tham gia" onkeypress="if(event.key==='Enter') addParticipant()" />
+                <button class="add-btn" onclick="addParticipant()">+ Thêm</button>
+            </div>
+
+            <div id="participantsList" class="participants-tags">
+                <div class="empty-state" style="padding: 20px;">Chưa có ai. Thêm người tham gia để bắt đầu</div>
+            </div>
+        </div>
+
+        <!-- User Selection -->
+        <div class="section" id="selectUserSection" style="display: none;">
+            <div class="section-title">3. Chọn tên của bạn để điền lịch</div>
+            <div id="selectUserButtons"></div>
+        </div>
+
+        <!-- Matrix -->
+        <div class="section" id="matrixSection" style="display: none;">
+            <div class="section-title">4. Ma trận lịch rảnh</div>
+            
+            <div class="current-user-info" id="currentUserInfo" style="display: none;"></div>
+
+            <div class="info-box">
+                💡 <strong>Cách dùng:</strong> Chọn tên của bạn ở trên, sau đó click vào các ô để đánh dấu bạn rảnh. Ô có chấm đen góc trái = bạn đã tick. Màu xanh đậm = nhiều người rảnh. Dùng mũi tên ◀ ▶ để xem 15 ngày tiếp theo (nếu chọn > 15 ngày). Tự động lưu mỗi lần bạn click.
+            </div>
+
+            <div class="matrix-container">
+                <div class="time-matrix" id="timeMatrix"></div>
+            </div>
+
+            <div class="date-nav">
+                <button class="nav-btn" onclick="navigateDates(-1)">◀</button>
+                <span id="pageIndicator" style="margin: 0 20px; color: #666; font-size: 0.9em;"></span>
+                <button class="nav-btn" onclick="navigateDates(1)">▶</button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <div class="section-title">Kết quả: Thời gian tất cả đều rảnh</div>
+            <div id="results">
+                <div class="empty-state">Chưa có dữ liệu</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 20px; color: #999; font-size: 0.85em;">
+            Version v1.0.5 - Upgraded Results
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // =====================================================
+        // FIREBASE CONFIG - PASTE YOUR CONFIG HERE
+        // =====================================================
+       const firebaseConfig = {
+  apiKey: "AIzaSyDWsg2mJedg7IN4Sfa2UcwgA_makmDElzI",
+  authDomain: "calendar-78177.firebaseapp.com",
+  databaseURL: "https://calendar-78177-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "calendar-78177",
+  storageBucket: "calendar-78177.firebasestorage.app",
+  messagingSenderId: "430449507404",
+  appId: "1:430449507404:web:d6de8c1ff0ec1d901d48e9",
+  measurementId: "G-8554TD6QV6"
+};
+
+        // Check if Firebase is configured
+        let db = null;
+        let isFirebaseConfigured = false;
+
+        if (firebaseConfig.apiKey) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                isFirebaseConfigured = true;
+                document.getElementById('firebaseNotice').style.display = 'none';
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+            }
+        }
+
+        // Get or create event ID
+        const urlParams = new URLSearchParams(window.location.search);
+        let eventId = urlParams.get('event');
+
+        if (!eventId) {
+            eventId = 'event_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const newUrl = window.location.pathname + '?event=' + eventId;
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // =====================================================
+        // DATA & STATE
+        // =====================================================
+        let data = {
+            participants: [],
+            availability: {},
+            dateRange: {
+                startDate: null,
+                endDate: null
+            }
+        };
+
+        let currentUser = null;
+        let dates = [];
+        let viewIndex = 0;  // Trang hiện tại (0 = 15 ngày đầu, 1 = 15 ngày tiếp, ...)
+        const DAYS_PER_PAGE = 15;
+        
+        const TIME_SLOTS = [];
+        for (let h = 7; h <= 22; h++) {
+            TIME_SLOTS.push(h);
+        }
+
+        // =====================================================
+        // SAVE/LOAD - SIMPLIFIED
+        // =====================================================
+        const LOCALSTORAGE_KEY = 'schedule_data_' + eventId;
+        
+        function saveToLocalStorage() {
+            localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(data));
+            console.log('[SAVE] localStorage updated');
+        }
+        
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem(LOCALSTORAGE_KEY);
+            if (saved) {
+                try {
+                    data = JSON.parse(saved);
+                    console.log('[LOAD] localStorage loaded:', data.participants.length, 'participants');
+                    return true;
+                } catch (e) {
+                    console.error('[ERROR] localStorage parse failed:', e);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        function saveToFirebase() {
+            if (!isFirebaseConfigured || !db) return;
+            
+            console.log('[FIREBASE] Saving...');
+            db.ref('events/' + eventId).set(data).then(() => {
+                console.log('[FIREBASE] Saved successfully');
+            }).catch((err) => {
+                console.error('[FIREBASE] Save error:', err);
+            });
+        }
+        
+        function setupFirebaseSync() {
+            if (!isFirebaseConfigured || !db) return;
+            
+            console.log('[FIREBASE] Setting up listener...');
+            
+            db.ref('events/' + eventId).on('value', (snapshot) => {
+                const firebaseData = snapshot.val();
+                
+                if (!firebaseData || !firebaseData.participants) {
+                    console.log('[FIREBASE] No data from server, keeping local data');
+                    return;
+                }
+                
+                // Merge strategy: Combine participants and availability
+                const localParticipants = data.participants || [];
+                const firebaseParticipants = firebaseData.participants || [];
+                
+                // If local has more participants, keep local
+                if (localParticipants.length >= firebaseParticipants.length) {
+                    console.log('[FIREBASE] Local data is newer, ignoring Firebase update');
+                    return;
+                }
+                
+                console.log('[FIREBASE] Received update, merging...');
+                data = firebaseData;
+                
+                // Update UI
+                if (data.dateRange && data.dateRange.startDate && data.dateRange.endDate) {
+                    document.getElementById('startDate').value = data.dateRange.startDate;
+                    document.getElementById('endDate').value = data.dateRange.endDate;
+                    
+                    dates = [];
+                    const start = new Date(data.dateRange.startDate);
+                    const end = new Date(data.dateRange.endDate);
+                    const numDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    for (let i = 0; i < numDays; i++) {
+                        const date = new Date(start);
+                        date.setDate(start.getDate() + i);
+                        dates.push(date);
+                    }
+                }
+                
+                saveToLocalStorage();
+                renderAll();
+                updateDateRangeDisplay();
+            });
+        }
+
+        // =====================================================
+        // DATE RANGE MANAGEMENT
+        // =====================================================
+        function initDateRange() {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            // Calculate end date (14 days later = 15 days total)
+            const endDay = new Date(today);
+            endDay.setDate(today.getDate() + 14);
+            const endDayStr = endDay.toISOString().split('T')[0];
+            
+            if (!data.dateRange.startDate) {
+                document.getElementById('startDate').value = todayStr;
+                document.getElementById('endDate').value = endDayStr;
+                data.dateRange = { startDate: todayStr, endDate: endDayStr };
+                
+                // Generate dates array
+                dates = [];
+                for (let i = 0; i < 15; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    dates.push(date);
+                }
+                
+                // Save initial date range
+                saveToLocalStorage();
+                saveToFirebase();
+            } else {
+                document.getElementById('startDate').value = data.dateRange.startDate;
+                document.getElementById('endDate').value = data.dateRange.endDate;
+                
+                if (dates.length === 0) {
+                    const start = new Date(data.dateRange.startDate);
+                    const end = new Date(data.dateRange.endDate);
+                    const numDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    for (let i = 0; i < numDays; i++) {
+                        const date = new Date(start);
+                        date.setDate(start.getDate() + i);
+                        dates.push(date);
+                    }
+                }
+            }
+            
+            updateDateRangeDisplay();
+        }
+
+        function updateDateRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) return;
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            // Validate
+            if (end < start) {
+                alert('Ngày kết thúc phải sau ngày bắt đầu');
+                return;
+            }
+            
+            const numDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            
+            if (numDays > 100) {
+                alert('Chỉ được chọn tối đa 100 ngày');
+                return;
+            }
+
+            data.dateRange = { startDate, endDate };
+            
+            // Generate ALL dates
+            dates = [];
+            for (let i = 0; i < numDays; i++) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + i);
+                dates.push(date);
+            }
+
+            // Reset view to first page
+            viewIndex = 0;
+
+            updateDateRangeDisplay();
+            renderMatrix();
+            saveToLocalStorage();
+            saveToFirebase();
+        }
+
+        function updateDateRangeDisplay() {
+            const display = document.getElementById('dateRangeDisplay');
+            
+            if (dates.length === 0) {
+                display.textContent = 'Chưa chọn';
+                return;
+            }
+
+            const first = dates[0];
+            const last = dates[dates.length - 1];
+            display.textContent = `${first.getDate()}/${first.getMonth() + 1} - ${last.getDate()}/${last.getMonth() + 1}`;
+        }
+
+        function navigateDates(direction) {
+            const totalPages = Math.ceil(dates.length / DAYS_PER_PAGE);
+            
+            viewIndex += direction;
+            
+            // Clamp to valid range
+            if (viewIndex < 0) {
+                viewIndex = 0;
+            }
+            
+            if (viewIndex >= totalPages) {
+                viewIndex = totalPages - 1;
+            }
+            
+            renderMatrix();
+            updateNavigationButtons();
+        }
+        
+        function updateNavigationButtons() {
+            if (dates.length === 0) return;
+            
+            const totalPages = Math.ceil(dates.length / DAYS_PER_PAGE);
+            const prevBtn = document.querySelectorAll('.nav-btn')[0];
+            const nextBtn = document.querySelectorAll('.nav-btn')[1];
+            
+            if (prevBtn) {
+                prevBtn.disabled = viewIndex === 0;
+                prevBtn.style.opacity = viewIndex === 0 ? '0.3' : '1';
+                prevBtn.style.cursor = viewIndex === 0 ? 'not-allowed' : 'pointer';
+            }
+            
+            if (nextBtn) {
+                nextBtn.disabled = viewIndex >= totalPages - 1;
+                nextBtn.style.opacity = viewIndex >= totalPages - 1 ? '0.3' : '1';
+                nextBtn.style.cursor = viewIndex >= totalPages - 1 ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        // =====================================================
+        // PARTICIPANTS
+        // =====================================================
+        function addParticipant() {
+            const input = document.getElementById('newParticipant');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('Vui lòng nhập tên');
+                return;
+            }
+
+            if (data.participants.includes(name)) {
+                alert('Tên này đã tồn tại');
+                return;
+            }
+
+            console.log('[ADD] Adding participant:', name);
+            data.participants.push(name);
+            
+            saveToLocalStorage();
+            saveToFirebase();
+            
+            input.value = '';
+            renderParticipants();
+            renderUserSelection();
+            renderMatrix();
+            updateResults();
+            
+            console.log('[ADD] Participant added, total:', data.participants.length);
+        }
+
+        function removeParticipant(name) {
+            if (!confirm(`Xóa ${name}? (Lịch của người này sẽ bị xóa)`)) return;
+
+            data.participants = data.participants.filter(p => p !== name);
+            
+            Object.keys(data.availability).forEach(slot => {
+                data.availability[slot] = data.availability[slot].filter(p => p !== name);
+                if (data.availability[slot].length === 0) {
+                    delete data.availability[slot];
+                }
+            });
+
+            saveToLocalStorage();
+            saveToFirebase();
+            renderAll();
+        }
+
+        function renderParticipants() {
+            const container = document.getElementById('participantsList');
+            
+            if (data.participants.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;">Chưa có ai. Thêm người tham gia để bắt đầu</div>';
+                document.getElementById('selectUserSection').style.display = 'none';
+                document.getElementById('matrixSection').style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = data.participants.map(name => `
+                <div class="participant-tag ${currentUser === name ? 'current' : ''}">
+                    <span class="name">${name}</span>
+                    <span class="remove" onclick="removeParticipant('${name}')">×</span>
+                </div>
+            `).join('');
+
+            document.getElementById('selectUserSection').style.display = 'block';
+            document.getElementById('matrixSection').style.display = 'block';
+            
+            // Update current user info display
+            const infoDiv = document.getElementById('currentUserInfo');
+            if (currentUser && data.participants.includes(currentUser)) {
+                infoDiv.style.display = 'block';
+                infoDiv.innerHTML = `<strong>Đang điền lịch cho:</strong> ${currentUser}. Click vào các ô để đánh dấu rảnh.`;
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        function renderUserSelection() {
+            const container = document.getElementById('selectUserButtons');
+            
+            if (data.participants.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${data.participants.map(name => `
+                        <button class="secondary" onclick="selectUser('${name}')" 
+                            style="${currentUser === name ? 'background: #10b981; color: white; border-color: #10b981;' : ''}">
+                            ${name} ${currentUser === name ? '✓' : ''}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function selectUser(name) {
+            currentUser = name;
+            renderParticipants();
+            renderUserSelection();
+            renderMatrix();
+            
+            // Show current user info
+            const infoDiv = document.getElementById('currentUserInfo');
+            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = `<strong>Đang điền lịch cho:</strong> ${name}. Click vào các ô để đánh dấu rảnh.`;
+        }
+
+        // =====================================================
+        // MATRIX
+        // =====================================================
+        function renderMatrix() {
+            const container = document.getElementById('timeMatrix');
+            
+            if (dates.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #999;">Vui lòng chọn khoảng thời gian</div>';
+                return;
+            }
+
+            let html = '<div class="matrix-header"></div>';
+            TIME_SLOTS.forEach(hour => {
+                html += `<div class="matrix-header">${hour}h</div>`;
+            });
+
+            // Pagination: Chỉ hiện 15 ngày theo viewIndex
+            const startIdx = viewIndex * DAYS_PER_PAGE;
+            const endIdx = Math.min(startIdx + DAYS_PER_PAGE, dates.length);
+            const visibleDates = dates.slice(startIdx, endIdx);
+
+            visibleDates.forEach(date => {
+                const dateStr = date.toISOString().split('T')[0];
+                const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                const dayName = dayNames[date.getDay()];
+                const dateDisplay = `${date.getDate()}/${date.getMonth() + 1}`;
+
+                html += `
+                    <div class="row-header">
+                        <div class="date-row">
+                            <span class="date">${dateDisplay}</span>
+                            <span class="day">${dayName}</span>
+                        </div>
+                    </div>
+                `;
+
+                TIME_SLOTS.forEach(hour => {
+                    const slot = `${dateStr}|${hour}`;
+                    const available = data.availability[slot] || [];
+                    const count = available.length;
+                    const total = data.participants.length;
+                    
+                    // Dùng count thực tế để quyết định màu (1-15 người)
+                    let heatClass = 'heat-0';
+                    if (count === 0) {
+                        heatClass = 'heat-0';
+                    } else if (count >= 15) {
+                        heatClass = 'heat-15';
+                    } else {
+                        // count từ 1-14 → heat-1 đến heat-14
+                        heatClass = `heat-${count}`;
+                    }
+                    
+                    // Check if current user has marked this slot
+                    const isCurrentUserMarked = currentUser && available.includes(currentUser);
+                    const markedClass = isCurrentUserMarked ? 'current-user-marked' : '';
+
+                    html += `
+                        <div class="time-cell ${heatClass} ${markedClass}" 
+                             data-slot="${slot}"
+                             onclick="toggleSlot('${slot}')"
+                             onmouseenter="showTooltip(event, '${slot}')"
+                             onmouseleave="hideTooltip()">
+                            ${total > 0 ? `${count}/${total}` : ''}
+                        </div>
+                    `;
+                });
+            });
+
+            container.innerHTML = html;
+            
+            // Update page indicator
+            const totalPages = Math.ceil(dates.length / DAYS_PER_PAGE);
+            const currentPage = viewIndex + 1;
+            const pageIndicator = document.getElementById('pageIndicator');
+            if (pageIndicator) {
+                if (totalPages > 1) {
+                    const startDate = visibleDates[0];
+                    const endDate = visibleDates[visibleDates.length - 1];
+                    pageIndicator.textContent = `Trang ${currentPage}/${totalPages} (${startDate.getDate()}/${startDate.getMonth() + 1} - ${endDate.getDate()}/${endDate.getMonth() + 1})`;
+                } else {
+                    pageIndicator.textContent = '';
+                }
+            }
+            
+            // Update navigation button states
+            updateNavigationButtons();
+        }
+
+        function toggleSlot(slot) {
+            if (!currentUser) {
+                alert('Vui lòng chọn tên của bạn trước');
+                return;
+            }
+
+            if (!data.availability[slot]) {
+                data.availability[slot] = [];
+            }
+
+            const index = data.availability[slot].indexOf(currentUser);
+            if (index > -1) {
+                data.availability[slot].splice(index, 1);
+                if (data.availability[slot].length === 0) {
+                    delete data.availability[slot];
+                }
+                console.log('[TOGGLE] Removed', currentUser, 'from', slot);
+            } else {
+                data.availability[slot].push(currentUser);
+                console.log('[TOGGLE] Added', currentUser, 'to', slot);
+            }
+
+            saveToLocalStorage();
+            saveToFirebase();
+            renderMatrix();
+            updateResults();
+        }
+
+        function showTooltip(event, slot) {
+            const tooltip = document.getElementById('tooltip');
+            const available = data.availability[slot] || [];
+            const total = data.participants.length;
+
+            if (total === 0) {
+                hideTooltip();
+                return;
+            }
+
+            const [dateStr, hour] = slot.split('|');
+            const date = new Date(dateStr);
+            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            const dayName = dayNames[date.getDay()];
+            const dateDisplay = `${date.getDate()}/${date.getMonth() + 1}`;
+
+            let html = `
+                <div class="header">${hour}h - ${dateDisplay} (${dayName})</div>
+                <div class="people-list">
+            `;
+
+            data.participants.forEach(name => {
+                const isAvailable = available.includes(name);
+                html += `
+                    <div class="person ${isAvailable ? 'available' : 'unavailable'}">
+                        ${isAvailable ? '✓' : '✗'} ${name}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            tooltip.innerHTML = html;
+            tooltip.classList.add('show');
+
+            const x = event.clientX + 10;
+            const y = event.clientY + 10;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('show');
+        }
+
+        // =====================================================
+        // RESULTS - NEW VERSION WITH GROUPING
+        // =====================================================
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (data.participants.length === 0) {
+                resultsDiv.innerHTML = '<div class="empty-state">Chưa có dữ liệu</div>';
+                return;
+            }
+
+            // Find all slots where everyone is available
+            const allAvailableSlots = [];
+            Object.keys(data.availability).forEach(slot => {
+                if (data.availability[slot].length === data.participants.length) {
+                    allAvailableSlots.push(slot);
+                }
+            });
+
+            if (allAvailableSlots.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        Không có thời gian nào mà tất cả ${data.participants.length} người đều rảnh
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by date and hour
+            allAvailableSlots.sort((a, b) => {
+                const [dateA, hourA] = a.split('|');
+                const [dateB, hourB] = b.split('|');
+                if (dateA !== dateB) return dateA.localeCompare(dateB);
+                return parseInt(hourA) - parseInt(hourB);
+            });
+
+            // Group consecutive hours into ranges
+            const timeRanges = groupConsecutiveHours(allAvailableSlots);
+
+            // Group by date
+            const byDate = {};
+            timeRanges.forEach(range => {
+                if (!byDate[range.date]) {
+                    byDate[range.date] = [];
+                }
+                byDate[range.date].push(range);
+            });
+
+            // Render grouped results
+            let html = `
+                <div class="info-box">
+                    Có <strong>${allAvailableSlots.length} khung giờ</strong> 
+                    mà tất cả ${data.participants.length} người đều rảnh.
+                    Đã gộp thành <strong>${timeRanges.length} khoảng thời gian</strong> liên tục.
+                </div>
+                <div class="results-by-date">
+            `;
+
+            // Sort dates
+            const sortedDates = Object.keys(byDate).sort();
+
+            sortedDates.forEach(dateStr => {
+                const ranges = byDate[dateStr];
+                const date = new Date(dateStr);
+                const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                const dayName = dayNames[date.getDay()];
+                const dateDisplay = `${date.getDate()}/${date.getMonth() + 1}`;
+
+                html += `
+                    <div class="date-group">
+                        <div class="date-group-header">
+                            ${dateDisplay} ${dayName}
+                        </div>
+                        <div class="time-ranges">
+                `;
+
+                ranges.forEach(range => {
+                    html += `
+                        <div class="time-range-card">
+                            <div class="day">${dayName} ${dateDisplay}</div>
+                            <div class="time">${range.startHour}h - ${range.endHour}h</div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        /**
+         * Group consecutive hour slots into time ranges
+         * Input: ["2025-03-22|7", "2025-03-22|8", "2025-03-22|9", "2025-03-22|11"]
+         * Output: [
+         *   { date: "2025-03-22", startHour: 7, endHour: 9 },
+         *   { date: "2025-03-22", startHour: 11, endHour: 11 }
+         * ]
+         */
+        function groupConsecutiveHours(slots) {
+            if (slots.length === 0) return [];
+
+            const ranges = [];
+            let currentRange = null;
+
+            slots.forEach(slot => {
+                const [date, hourStr] = slot.split('|');
+                const hour = parseInt(hourStr);
+
+                if (!currentRange) {
+                    // Start new range
+                    currentRange = {
+                        date: date,
+                        startHour: hour,
+                        endHour: hour
+                    };
+                } else if (currentRange.date === date && hour === currentRange.endHour + 1) {
+                    // Extend current range
+                    currentRange.endHour = hour;
+                } else {
+                    // Save current range and start new one
+                    ranges.push(currentRange);
+                    currentRange = {
+                        date: date,
+                        startHour: hour,
+                        endHour: hour
+                    };
+                }
+            });
+
+            // Don't forget the last range
+            if (currentRange) {
+                ranges.push(currentRange);
+            }
+
+            return ranges;
+        }
+
+        // =====================================================
+        // RENDER ALL
+        // =====================================================
+        function renderAll() {
+            renderParticipants();
+            renderUserSelection();
+            renderMatrix();
+            updateResults();
+        }
+
+        // =====================================================
+        // INITIALIZATION
+        // =====================================================
+        console.log('[INIT] Starting...');
+        
+        // Load from localStorage first
+        const hasLocalData = loadFromLocalStorage();
+        
+        // Init date range if not already loaded
+        if (!data.dateRange.startDate || !data.dateRange.endDate) {
+            console.log('[INIT] No date range, initializing...');
+            initDateRange();
+        } else {
+            console.log('[INIT] Date range loaded');
+            // Restore date inputs and generate dates array
+            document.getElementById('startDate').value = data.dateRange.startDate;
+            document.getElementById('endDate').value = data.dateRange.endDate;
+            
+            dates = [];
+            const start = new Date(data.dateRange.startDate);
+            const end = new Date(data.dateRange.endDate);
+            const numDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            
+            for (let i = 0; i < numDays; i++) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + i);
+                dates.push(date);
+            }
+            
+            updateDateRangeDisplay();
+        }
+        
+        // Render UI
+        console.log('[INIT] Rendering UI...');
+        renderAll();
+        
+        // Setup Firebase sync (if configured)
+        setupFirebaseSync();
+        
+        console.log('[INIT] Complete!');
+    </script>
+</body>
+</html>
