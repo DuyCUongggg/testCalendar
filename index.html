@@ -328,6 +328,11 @@
         .time-cell.heat-14 { background: #065f46; color: white; }
         .time-cell.heat-15 { background: #064e3b; color: white; }
 
+        .time-cell.filtered-out {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
         .tooltip {
             position: fixed;
             background: #1a1a1a;
@@ -485,15 +490,6 @@
             font-weight: 600;
             color: #10b981;
             white-space: nowrap;
-        }
-
-        .highlight-label.start {
-            left: 0;
-            transform: translateX(-50%);
-        }
-
-        .highlight-label.end {
-            left: 100%;
             transform: translateX(-50%);
         }
 
@@ -583,9 +579,9 @@
             </ol>
         </div>
 
-        <!-- Date Range -->
+        <!-- Date Range & Filters -->
         <div class="section">
-            <div class="section-title">1. Chọn khoảng thời gian</div>
+            <div class="section-title">1. Thiết lập & Lọc</div>
             
             <div style="color: #666; font-size: 0.9em; margin-bottom: 12px;">
                 📅 Chọn tối đa 100 ngày. Ma trận hiển thị 15 ngày/trang, dùng nút mũi tên để chuyển trang.
@@ -601,6 +597,23 @@
                     <input type="date" id="endDate" onchange="updateDateRange()" />
                 </div>
                 <div class="date-range-display" id="dateRangeDisplay"></div>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                <div style="color: #666; font-size: 0.9em; margin-bottom: 12px;">
+                    🔍 <strong>Lọc ma trận:</strong> Chỉ hiển thị ô có đủ người/giờ (nhập 0 để bỏ lọc)
+                </div>
+                <div class="date-controls">
+                    <div>
+                        <label>Số người tối thiểu:</label>
+                        <input type="number" id="minPeople" min="0" value="0" onchange="applyFilter()" style="width: 80px;" />
+                    </div>
+                    <div>
+                        <label>Số giờ liên tục tối thiểu:</label>
+                        <input type="number" id="minHours" min="0" value="0" onchange="applyFilter()" style="width: 80px;" />
+                    </div>
+                    <div id="filterStatus" style="padding: 8px 12px; background: #f0fdf4; border: 1px solid #10b981; color: #065f46; font-size: 0.9em; display: none;"></div>
+                </div>
             </div>
         </div>
 
@@ -655,7 +668,7 @@
 
         <!-- Footer -->
         <div style="text-align: center; padding: 20px; color: #999; font-size: 0.85em;">
-            Version v1.1.0 - Timeline Results
+            Version v1.2.0 - Smart Filter
         </div>
     </div>
 
@@ -670,7 +683,7 @@
         // =====================================================
         // FIREBASE CONFIG - PASTE YOUR CONFIG HERE
         // =====================================================
-       const firebaseConfig = {
+      const firebaseConfig = {
   apiKey: "AIzaSyDWsg2mJedg7IN4Sfa2UcwgA_makmDElzI",
   authDomain: "calendar-78177.firebaseapp.com",
   databaseURL: "https://calendar-78177-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -701,9 +714,9 @@
         let eventId = urlParams.get('event');
 
         if (!eventId) {
-            eventId = 'event_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            const newUrl = window.location.pathname + '?event=' + eventId;
-            window.history.replaceState({}, '', newUrl);
+            // Use a FIXED event ID instead of random
+            eventId = 'main_event';
+            // Don't add to URL - keep the clean URL
         }
 
         // =====================================================
@@ -722,6 +735,10 @@
         let dates = [];
         let viewIndex = 0;
         const DAYS_PER_PAGE = 15;
+        
+        // Filter state
+        let filterMinPeople = 0;
+        let filterMinHours = 0;
         
         const TIME_SLOTS = [];
         for (let h = 7; h <= 22; h++) {
@@ -944,6 +961,90 @@
         }
 
         // =====================================================
+        // FILTER
+        // =====================================================
+        function applyFilter() {
+            filterMinPeople = parseInt(document.getElementById('minPeople').value) || 0;
+            filterMinHours = parseInt(document.getElementById('minHours').value) || 0;
+            
+            const statusDiv = document.getElementById('filterStatus');
+            
+            if (filterMinPeople === 0 && filterMinHours === 0) {
+                statusDiv.style.display = 'none';
+            } else {
+                statusDiv.style.display = 'block';
+                let statusText = '🔍 Lọc: ';
+                if (filterMinPeople > 0) statusText += `≥${filterMinPeople} người`;
+                if (filterMinPeople > 0 && filterMinHours > 0) statusText += ', ';
+                if (filterMinHours > 0) statusText += `≥${filterMinHours}h liên tục`;
+                statusDiv.textContent = statusText;
+            }
+            
+            renderMatrix();
+            updateResults();
+        }
+
+        function shouldShowSlot(dateStr, hour) {
+            // No filter applied
+            if (filterMinPeople === 0 && filterMinHours === 0) {
+                return true;
+            }
+
+            const slot = `${dateStr}|${hour}`;
+            const available = data.availability[slot] || [];
+            const count = available.length;
+
+            // Check min people
+            if (filterMinPeople > 0 && count < filterMinPeople) {
+                return false;
+            }
+
+            // Check min hours (consecutive)
+            if (filterMinHours > 0) {
+                // Find all consecutive sequences for this date that meet minPeople requirement
+                const sequences = findConsecutiveSequences(dateStr, filterMinPeople);
+                
+                // Check if this hour is part of any sequence that is >= filterMinHours
+                for (const seq of sequences) {
+                    if (seq.length >= filterMinHours && seq.includes(hour)) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            return true;
+        }
+
+        function findConsecutiveSequences(dateStr, minPeople) {
+            // Find all consecutive sequences for a given date where slots have >= minPeople
+            const sequences = [];
+            let currentSequence = [];
+            
+            for (let h = 7; h <= 22; h++) {
+                const slot = `${dateStr}|${h}`;
+                const available = data.availability[slot] || [];
+                
+                if (available.length >= minPeople) {
+                    currentSequence.push(h);
+                } else {
+                    if (currentSequence.length > 0) {
+                        sequences.push([...currentSequence]);
+                        currentSequence = [];
+                    }
+                }
+            }
+            
+            // Don't forget last sequence
+            if (currentSequence.length > 0) {
+                sequences.push(currentSequence);
+            }
+            
+            return sequences;
+        }
+
+        // =====================================================
         // PARTICIPANTS
         // =====================================================
         function addParticipant() {
@@ -1104,14 +1205,18 @@
                     
                     const isCurrentUserMarked = currentUser && available.includes(currentUser);
                     const markedClass = isCurrentUserMarked ? 'current-user-marked' : '';
+                    
+                    // Apply filter
+                    const showSlot = shouldShowSlot(dateStr, hour);
+                    const filterClass = !showSlot ? 'filtered-out' : '';
 
                     html += `
-                        <div class="time-cell ${heatClass} ${markedClass}" 
+                        <div class="time-cell ${heatClass} ${markedClass} ${filterClass}" 
                              data-slot="${slot}"
                              onclick="toggleSlot('${slot}')"
                              onmouseenter="showTooltip(event, '${slot}')"
                              onmouseleave="hideTooltip()">
-                            ${total > 0 ? `${count}/${total}` : ''}
+                            ${total > 0 && showSlot ? `${count}/${total}` : ''}
                         </div>
                     `;
                 });
@@ -1218,17 +1323,27 @@
                 return;
             }
 
+            // Determine minimum people threshold
+            let minPeopleThreshold = data.participants.length;
+            if (filterMinPeople > 0) {
+                minPeopleThreshold = filterMinPeople;
+            }
+
             const allAvailableSlots = [];
             Object.keys(data.availability).forEach(slot => {
-                if (data.availability[slot].length === data.participants.length) {
+                if (data.availability[slot].length >= minPeopleThreshold) {
                     allAvailableSlots.push(slot);
                 }
             });
 
             if (allAvailableSlots.length === 0) {
+                const filterActive = filterMinPeople > 0 || filterMinHours > 0;
                 resultsDiv.innerHTML = `
                     <div class="empty-state">
-                        Không có thời gian nào mà tất cả ${data.participants.length} người đều rảnh
+                        ${filterActive 
+                            ? `Không có thời gian nào với ≥${minPeopleThreshold} người${filterMinHours > 0 ? ` và ≥${filterMinHours} giờ liên tục` : ''}`
+                            : `Không có thời gian nào mà tất cả ${data.participants.length} người đều rảnh`
+                        }
                     </div>
                 `;
                 return;
@@ -1242,18 +1357,42 @@
             });
 
             const timeRanges = groupConsecutiveHours(allAvailableSlots);
+            
+            // Apply minHours filter to ranges
+            let filteredRanges = timeRanges;
+            if (filterMinHours > 0) {
+                filteredRanges = timeRanges.filter(range => {
+                    const duration = range.endHour - range.startHour + 1;
+                    return duration >= filterMinHours;
+                });
+            }
+
+            if (filteredRanges.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        Không có khoảng thời gian nào ≥${filterMinHours} giờ liên tục với ≥${minPeopleThreshold} người
+                    </div>
+                `;
+                return;
+            }
+
             const byDate = {};
-            timeRanges.forEach(range => {
+            filteredRanges.forEach(range => {
                 if (!byDate[range.date]) {
                     byDate[range.date] = [];
                 }
                 byDate[range.date].push(range);
             });
 
+            const filterActive = filterMinPeople > 0 || filterMinHours > 0;
             let html = `
                 <div class="info-box">
-                    Có <strong>${allAvailableSlots.length} khung giờ</strong> rảnh, 
-                    gộp thành <strong>${timeRanges.length} khoảng thời gian</strong> liên tục
+                    ${filterActive 
+                        ? `Có <strong>${allAvailableSlots.length} khung giờ</strong> với ≥${minPeopleThreshold} người, 
+                           gộp thành <strong>${filteredRanges.length} khoảng thời gian</strong>${filterMinHours > 0 ? ` ≥${filterMinHours} giờ` : ''}`
+                        : `Có <strong>${allAvailableSlots.length} khung giờ</strong> rảnh, 
+                           gộp thành <strong>${filteredRanges.length} khoảng thời gian</strong> liên tục`
+                    }
                 </div>
             `;
 
@@ -1284,6 +1423,7 @@
 
                 ranges.forEach(range => {
                     const startPos = ((range.startHour - 7) / 15) * 100;
+                    const endPos = ((range.endHour + 1 - 7) / 15) * 100;
                     const width = ((range.endHour - range.startHour + 1) / 15) * 100;
                     const duration = range.endHour - range.startHour + 1;
                     const durationText = duration === 1 ? '1 tiếng' : `${duration} tiếng`;
@@ -1291,9 +1431,9 @@
                     html += `
                         <div class="highlight" style="left: ${startPos}%; width: ${width}%;">
                             <div class="duration-label">${durationText}</div>
-                            <div class="highlight-label start">${range.startHour}h</div>
-                            <div class="highlight-label end">${range.endHour}h</div>
                         </div>
+                        <div class="highlight-label start" style="left: ${startPos}%;">${range.startHour}h</div>
+                        <div class="highlight-label end" style="left: ${endPos}%;">${range.endHour + 1}h</div>
                     `;
                 });
 
